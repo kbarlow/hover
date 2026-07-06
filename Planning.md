@@ -71,7 +71,7 @@ All agents:
   database. No Supabase, no external DB.
 - **Trigger:** GitHub Issues (`issues: opened` event) — no custom form, no separate
   API call.
-- **Viewer:** GitHub Pages serving `web/index.html`, polling the raw JSON via
+- **Viewer:** GitHub Pages serving `docs/index.html`, polling the raw JSON via
   `raw.githubusercontent.com` with a cache-busting query param.
 
 ## Repo structure
@@ -83,15 +83,18 @@ All agents:
   ├── agents.py                          # persona prompts + Haiku call wrapper
   ├── sessions/
   │     └── {issue_number}.json          # live log, committed each round
-  └── web/
+  └── docs/
         └── index.html                   # optional polling viewer, served via Pages
 ```
+Note: the viewer lives in `docs/` rather than `web/` because GitHub Pages'
+"Deploy from a branch" source only offers `/ (root)` or `/docs` as folder
+choices — `/web` isn't selectable in the UI.
 
 ## Setup steps (one-time)
 1. Create the repo as **public** (keeps Actions minutes free and unlimited).
 2. Add `ANTHROPIC_API_KEY` as a repo secret (Settings → Secrets and variables →
    Actions).
-3. Enable GitHub Pages: Settings → Pages → source = `main` branch, `/web` folder.
+3. Enable GitHub Pages: Settings → Pages → source = `main` branch, `/docs` folder.
 4. Confirm Issues are enabled on the repo (on by default).
 5. Grant the Actions workflow permission to push commits and post Issue comments:
    Settings → Actions → General → Workflow permissions → "Read and write
