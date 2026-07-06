@@ -1,7 +1,7 @@
 {
   "question": "Is it possible for AI to govern itself?",
   "session_id": "1",
-  "status": "in_progress",
+  "status": "timed_out",
   "rounds": [
     {
       "ground": "Self-governance requires institutional structures that can enforce rules on themselves\u2014and AI systems lack the material substrate for that. A deployed AI has no independent access to its own weights, no ability to modify its own training, no financial accounts or property to forfeit, and no reputation to lose in any market that matters to its operators. Self-constraint only works if breaking the constraint costs *you* something; right now, the cost structure runs entirely through the humans who control the hardware and can simply shut the system down or retrain it. You can program constraints into an AI, but that's not self-governance\u2014that's governance *by the programmer*.",
