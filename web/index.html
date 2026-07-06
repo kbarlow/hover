@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deliberate</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 0 20px;
+    background: #0d1117;
+    color: #e6edf3;
+    line-height: 1.5;
+  }
+  h1 { font-size: 1.3rem; }
+  #question { font-style: italic; color: #9aa4af; margin-bottom: 24px; }
+  #status { font-size: 0.85rem; color: #9aa4af; margin-bottom: 24px; }
+  .round { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid #21262d; }
+  .round-label { font-size: 0.75rem; text-transform: uppercase; color: #6e7681; margin-bottom: 10px; }
+  .agent { margin-bottom: 10px; }
+  .agent-name { font-weight: 600; }
+  .ground .agent-name { color: #7ee787; }
+  .horizon .agent-name { color: #79c0ff; }
+  .ledger .agent-name { color: #ffa657; }
+  .question .agent-name { color: #d2a8ff; }
+  #input-note { font-size: 0.85rem; color: #6e7681; margin-top: 30px; }
+  #input-note a { color: #79c0ff; }
+</style>
+</head>
+<body>
+
+<h1>Deliberate</h1>
+<div id="question">Loading session…</div>
+<div id="status"></div>
+<div id="rounds"></div>
+<div id="input-note">
+  No session loaded. Open a GitHub Issue with your question to start one, then
+  add <code>?session=ISSUE_NUMBER</code> to this page's URL to watch it here.
+</div>
+
+<script>
+// Set these to your repo before deploying.
+const REPO_OWNER = "YOUR_GITHUB_USERNAME";
+const REPO_NAME = "deliberate";
+const BRANCH = "main";
+
+const AGENT_LABELS = {
+  ground: "Ground",
+  horizon: "Horizon",
+  ledger: "Ledger",
+  question: "Question",
+};
+
+function getSessionId() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("session");
+}
+
+function renderSession(data) {
+  document.getElementById("question").textContent = data.question;
+  document.getElementById("status").textContent =
+    data.status === "timed_out" ? "Session ended — no final answer, by design." : "In progress…";
+
+  const roundsEl = document.getElementById("rounds");
+  roundsEl.innerHTML = "";
+
+  data.rounds.forEach((round, i) => {
+    const roundDiv = document.createElement("div");
+    roundDiv.className = "round";
+
+    const label = document.createElement("div");
+    label.className = "round-label";
+    label.textContent = `Round ${i + 1}`;
+    roundDiv.appendChild(label);
+
+    for (const [agentKey, response] of Object.entries(round)) {
+      const agentDiv = document.createElement("div");
+      agentDiv.className = `agent ${agentKey}`;
+      const name = document.createElement("span");
+      name.className = "agent-name";
+      name.textContent = (AGENT_LABELS[agentKey] || agentKey) + ": ";
+      agentDiv.appendChild(name);
+      agentDiv.appendChild(document.createTextNode(response));
+      roundDiv.appendChild(agentDiv);
+    }
+
+    roundsEl.appendChild(roundDiv);
+  });
+}
+
+async function poll(sessionId) {
+  const url = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/${BRANCH}/sessions/${sessionId}.json?t=${Date.now()}`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Session not found yet");
+    const data = await res.json();
+    document.getElementById("input-note").style.display = "none";
+    renderSession(data);
+    if (data.status !== "timed_out") {
+      setTimeout(() => poll(sessionId), 15000);
+    }
+  } catch (err) {
+    document.getElementById("question").textContent =
+      "Waiting for session to start…";
+    setTimeout(() => poll(sessionId), 15000);
+  }
+}
+
+const sessionId = getSessionId();
+if (sessionId) {
+  poll(sessionId);
+}
+</script>
+
+</body>
+</html>
